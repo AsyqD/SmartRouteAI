@@ -59,7 +59,7 @@ def get_json_from_text(text: str) -> dict:
     Преобразует текст в JSON-объект.
     """
     try:
-        t_text = text[text.rfind('</think>'):]
+        t_text = text[text.rfind('{'):text.rfind('}')+1].replace('\n  ', '')
         return json.loads(t_text)
     except json.JSONDecodeError as e:
         st.error(f"Ошибка при разборе JSON: {e}")
@@ -90,8 +90,8 @@ for msg in st.session_state.messages:
     with st.chat_message(msg['role']):
         st.write(msg['content'])
 
-with st.chat_message("assistant"):
-    st.write("This is a chat message from the assistant.")
+# with st.chat_message("assistant"):
+    # st.write("This is a chat message from the assistant.")
 
 if prompt := st.chat_input("Type a message"):
     add_prompt = f"**{name} из {department}:**\n\n{prompt}\n"
@@ -100,14 +100,14 @@ if prompt := st.chat_input("Type a message"):
     with st.chat_message("user"):
         st.markdown(add_prompt)
     # Here you would typically call your model to get a response
-    response =  classify_query_with_local_llm(add_prompt) # Placeholder response
-    print(get_json_from_text(response))
+    response = classify_query_with_local_llm(add_prompt) # Placeholder response
+    response = get_json_from_text(response)
 
     # response = get_json_from_text(response)
     if not response:
         st.error("Не удалось получить ответ от модели. Проверьте форматирование запроса.")
         st.stop()
-    # response_prompt = f"""**Обращение: "{response['urgency']}". Направление в работу для "{response['department']}":**\n\n{response['summary']}\n"""
+    response_prompt = f"""**Обращение: "{response['urgency']}". Направление в работу для "{response['department']}":**\n\n{response['summary']}\n"""
     
     
     # department_llm, urgency_llm, summary_llm = classify_query_with_local_llm(add_prompt)
@@ -117,4 +117,4 @@ if prompt := st.chat_input("Type a message"):
     # st.session_state.messages.append({"role": "assistant", "content": response})
 
     with st.chat_message("assistant"):
-        st.write(response)
+        st.write(response_prompt)
