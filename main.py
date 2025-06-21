@@ -18,10 +18,13 @@ llm = ChatOpenAI(
     )
 
 def classify_query_with_local_llm(text: str) -> str:
-    messages =  [SystemMessage(content='''
+    
+    depsartment_names = "\n".join([f"{d['name']}: {d['description']}" for d in DEPARTMENT_KNOWLEDGE])
+    
+    messages =  [SystemMessage(content=f'''
 Ты — помощник банка, который классифицирует обращения к Банку. 
 
-Твоя задача — строго следовать этим инструкциям:
+Твоя задача — следовать этим инструкциям:
 1. Анализируй предоставленное обращение 
 2. Определяешь подразделение банка (department)
 3. Оцениваешь срочность (urgency)
@@ -29,7 +32,7 @@ def classify_query_with_local_llm(text: str) -> str:
 5. Возвращаешь ТОЛЬКО валидный JSON-объект без каких-либо пояснений
 
 Доступные категории:
-- Подразделения (department): 
+- Подразделения (department): {depsartment_names}
 - Срочность (urgency): "Срочно" (финансовые потери/блокировка), "Репутационно" (риск для имиджа), "Обычное" (стандартные вопросы)
 
 Правила summary:
@@ -49,8 +52,8 @@ def classify_query_with_local_llm(text: str) -> str:
 
   
     response = llm.invoke(messages)
-    with open('response.txt', 'w', encoding='utf-8') as f:
-        f.write(response.content)
+    # with open('response.txt', 'w', encoding='utf-8') as f:
+    #     f.write(response.content)
     return response.content
         
     
@@ -109,12 +112,5 @@ if prompt := st.chat_input("Type a message"):
         st.stop()
     response_prompt = f"""**Обращение: "{response['urgency']}". Направление в работу для "{response['department']}":**\n\n{response['summary']}\n"""
     
-    
-    # department_llm, urgency_llm, summary_llm = classify_query_with_local_llm(add_prompt)
-    # with open('jjj.txt', 'w', encoding='utf-8') as f:
-    #     f.write(response)
-    # response = f"Классификация: Департамент: {department_llm}, Срочность: {urgency_llm}, Описание: {summary_llm}"
-    # st.session_state.messages.append({"role": "assistant", "content": response})
-
     with st.chat_message("assistant"):
         st.write(response_prompt)
