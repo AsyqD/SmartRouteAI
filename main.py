@@ -4,10 +4,10 @@ import numpy as np
 #import matplotlib.pyplot as plt
 #import seaborn as sns
 from department_knowledge_base import DEPARTMENT_KNOWLEDGE
-from langchain.llms import OpenAI
-from langchain.chat_models import ChatOpenAI
+from langchain_community.llms import OpenAI
+from langchain_openai import ChatOpenAI
 from langchain.schema import SystemMessage, HumanMessage
-from langchain_core.messages import AIMessage
+# from langchain_community.messages import AIMessage
 import json
 
 llm = OpenAI(
@@ -33,12 +33,15 @@ def classify_query_with_local_llm(text):
         }}
         """)
     ]
-    try:
-        response = llm(messages).content
-        result = json.loads(response)
-        return result["department"], result["urgency"], result["summary"]
-    except Exception as e:
-        return "Служба поддержки / Call-центр", "Обычное", f"Запрос: {text[:50]}..."
+    
+    return llm.generate(messages).content
+    # try:
+    #     response = llm(messages).content
+    #     result = json.loads(response)
+    #     return result["department"], result["urgency"], result["summary"]
+    # except Exception as e:
+    #     # return "Служба поддержки / Call-центр", "Обычное", f"Запрос: {text[:50]}..."
+    #     print(e)
 
 st.image(
     "https://upload.wikimedia.org/wikipedia/en/thumb/d/d6/Halyk_Bank.svg/1200px-Halyk_Bank.svg.png",
@@ -50,7 +53,7 @@ st.image(
 )
 st.title('Halyk Bank')
 st.write('Hello, World!')
-name = st.text_input('Enter your name:', 'John Doe')
+name = st.text_input('Enter your name:', 'Xavier')
 st.write(f'Hello, {name}!')
 st.write('This is a simple Streamlit app to demonstrate basic functionality.')
 department = st.selectbox(
@@ -74,10 +77,10 @@ if prompt := st.chat_input("Type a message"):
         st.write(add_prompt)
 
     # Here you would typically call your model to get a response
-    response = f"You said: {prompt}"  # Placeholder response
-    #department_llm, urgency_llm, summary_llm = classify_query_with_local_llm(add_prompt)
+    # response = f"You said: {prompt}"  # Placeholder response
+    department_llm, urgency_llm, summary_llm = classify_query_with_local_llm(add_prompt)
 
-    #response = f"Классификация: Департамент: {department_llm}, Срочность: {urgency_llm}, Описание: {summary_llm}"
+    response = f"Классификация: Департамент: {department_llm}, Срочность: {urgency_llm}, Описание: {summary_llm}"
     st.session_state.messages.append({"role": "assistant", "content": response})
 
     with st.chat_message("assistant"):
